@@ -1,6 +1,6 @@
 {
-  "name": "react-scripts-public-url",
-  "version": "3.3.0",
+  "name": "react-scripts-asset-path-prefix",
+  "version": "3.3.1-beta.1",
   "description": "Configuration and scripts for Create React App.",
   "repository": {
     "type": "git",
