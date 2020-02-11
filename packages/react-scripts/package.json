@@ -1,6 +1,6 @@
 {
   "name": "react-scripts-asset-path-prefix",
-  "version": "3.3.1-beta.6",
+  "version": "3.3.1-beta.7",
   "description": "Configuration and scripts for Create React App.",
   "repository": {
     "type": "git",
@@ -73,6 +73,7 @@
     "sass-loader": "8.0.2",
     "semver": "6.3.0",
     "style-loader": "1.1.3",
+    "svg-react-loader": "0.4.6",
     "terser-webpack-plugin": "2.3.4",
     "ts-loader": "6.2.1",
     "ts-pnp": "1.1.5",
