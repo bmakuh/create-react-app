@@ -18,7 +18,8 @@ const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
 
 const envPublicUrl = process.env.PUBLIC_URL;
-const envAssetPathPrefix = process.env.ASSET_PATH_PREFIX;
+const envOutputPath = process.env.OUTPUT_PATH || 'build';
+const envAssetPathPrefix = process.env.REACT_APP_ASSET_PATH_PREFIX;
 
 function ensureSlash(inputPath, needsSlash) {
   const hasSlash = inputPath.endsWith('/');
@@ -48,9 +49,16 @@ function getServedPath(appPackageJson) {
 }
 
 const getAssetPathPrefix = appPackageJson => {
-  const prefix =
-    envAssetPathPrefix || require(appPackageJson).assetPathPrefix || '';
-  return ensureSlash(prefix, true);
+  let prefix;
+  if (envAssetPathPrefix != null) {
+    prefix = envAssetPathPrefix;
+  }
+  if (prefix == null) {
+    prefix = require(appPackageJson).assetPathPrefix;
+  } else {
+    prefix = '';
+  }
+  return ensureSlash(prefix, prefix.length > 0);
 };
 
 const moduleFileExtensions = [
@@ -84,7 +92,7 @@ const resolveModule = (resolveFn, filePath) => {
 module.exports = {
   dotenv: resolveApp('.env'),
   appPath: resolveApp('.'),
-  appBuild: resolveApp('build'),
+  appBuild: resolveApp(envOutputPath),
   appPublic: resolveApp('public'),
   appHtml: resolveApp('public/index.html'),
   appIndexJs: resolveModule(resolveApp, 'src/index'),
@@ -108,7 +116,7 @@ const resolveOwn = relativePath => path.resolve(__dirname, '..', relativePath);
 module.exports = {
   dotenv: resolveApp('.env'),
   appPath: resolveApp('.'),
-  appBuild: resolveApp('build'),
+  appBuild: resolveApp(envOutputPath),
   appPublic: resolveApp('public'),
   appHtml: resolveApp('public/index.html'),
   appIndexJs: resolveModule(resolveApp, 'src/index'),

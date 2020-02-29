@@ -33,12 +33,18 @@ const ModuleNotFoundPlugin = require('react-dev-utils/ModuleNotFoundPlugin');
 const ForkTsCheckerWebpackPlugin = require('react-dev-utils/ForkTsCheckerWebpackPlugin');
 const typescriptFormatter = require('react-dev-utils/typescriptFormatter');
 // @remove-on-eject-begin
-const eslint = require('eslint');
+// const eslint = require('eslint');
 const getCacheIdentifier = require('react-dev-utils/getCacheIdentifier');
 // @remove-on-eject-end
 const postcssNormalize = require('postcss-normalize');
 
 const appPackageJson = require(paths.appPackageJson);
+
+const WebpackGitHash = require('webpack-git-hash');
+
+const githash = new WebpackGitHash({
+  hashLength: 40,
+}).skipHash;
 
 // Source maps are resource heavy and can cause out of memory issue for large source files.
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false';
@@ -56,8 +62,8 @@ const useTypeScript = fs.existsSync(paths.appTsConfig);
 // style files regexes
 const cssRegex = /\.css$/;
 const cssModuleRegex = /\.module\.css$/;
-const sassRegex = /\.(scss|sass)$/;
-const sassModuleRegex = /\.module\.(scss|sass)$/;
+// const sassRegex = /\.(scss|sass)$/;
+// const sassModuleRegex = /\.module\.(scss|sass)$/;
 
 // This is the production and development configuration.
 // It is focused on developer experience, fast rebuilds, and a minimal bundle.
@@ -73,8 +79,9 @@ module.exports = function(webpackEnv) {
   // Webpack uses `publicPath` to determine where the app is being served from.
   // It requires a trailing slash, or the file assets will get an incorrect path.
   // In development, we always serve from the root. This makes config easier.
+  const assetPathPrefix = paths.assetPathPrefix;
   const publicPath = isEnvProduction
-    ? paths.servedPath
+    ? paths.servedPath + assetPathPrefix
     : isEnvDevelopment && '/';
   // Some apps do not use client-side routing with pushState.
   // For these, "homepage" can be set to "." to enable relative asset paths.
@@ -88,7 +95,19 @@ module.exports = function(webpackEnv) {
     : isEnvDevelopment && '';
   // Get environment variables to inject into our app.
   const env = getClientEnvironment(publicUrl);
-  const assetPathPrefix = paths.assetPathPrefix;
+  const jsPath = env.raw.REACT_APP_USE_GITHASH_FOR_FILENAMES
+    ? ''
+    : `static/js/`;
+  const cssPath = env.raw.REACT_APP_USE_GITHASH_FOR_FILENAMES
+    ? ''
+    : `static/css/`;
+  const filenameHash = env.raw.REACT_APP_USE_GITHASH_FOR_FILENAMES
+    ? '[githash]'
+    : '[contenthash:8]';
+
+  const cssHash = env.raw.REACT_APP_USE_GITHASH_FOR_FILENAMES
+    ? githash
+    : '[contenthash:8]';
 
   // common function to get style loaders
   const getStyleLoaders = (cssOptions, preProcessor) => {
@@ -185,13 +204,13 @@ module.exports = function(webpackEnv) {
       // There will be one main bundle, and one file per asynchronous chunk.
       // In development, it does not produce real files.
       filename: isEnvProduction
-        ? assetPathPrefix + 'static/js/[name].[contenthash:8].js'
+        ? `${jsPath}[name].${filenameHash}.js`
         : isEnvDevelopment && assetPathPrefix + 'static/js/bundle.js',
       // TODO: remove this when upgrading to webpack 5
       futureEmitAssets: true,
       // There are also additional JS chunk files if you use code splitting.
       chunkFilename: isEnvProduction
-        ? assetPathPrefix + 'static/js/[name].[contenthash:8].chunk.js'
+        ? `${jsPath}[name].${filenameHash}.chunk.js`
         : isEnvDevelopment && assetPathPrefix + 'static/js/[name].chunk.js',
       // We inferred the "public path" (such as / or /my-project) from homepage.
       // We use "/" in development.
@@ -404,12 +423,12 @@ module.exports = function(webpackEnv) {
               loader: require.resolve('url-loader'),
               options: {
                 limit: imageInlineSizeLimit,
-                name: assetPathPrefix + 'static/media/[name].[hash:8].[ext]',
+                name: 'static/media/[name].[hash:8].[ext]',
               },
             },
             {
-              test: /\.(ts|tsx)$/,
-              include: paths.appSrc,
+              test: /\.(js|jsx|ts|tsx)$/,
+              include: [paths.appSrc, /\/node_modules\/quill/],
               exclude: /\.test.(ts|tsx)$/,
               loader: require.resolve('ts-loader'),
               options: {
@@ -420,7 +439,7 @@ module.exports = function(webpackEnv) {
             // The preset includes JSX, Flow, TypeScript, and some ESnext features.
             // {
             //   test: /\.(js|mjs|jsx|ts|tsx)$/,
-            //   include: paths.appSrc,
+            //   include: [paths.appSrc, /\/node_modules\/quill/],
             //   loader: require.resolve('babel-loader'),
             //   options: {
             //     customize: require.resolve(
@@ -588,7 +607,7 @@ module.exports = function(webpackEnv) {
               // by webpacks internal loaders.
               exclude: [/\.(js|mjs|jsx|ts|tsx)$/, /\.html$/, /\.json$/],
               options: {
-                name: assetPathPrefix + 'static/media/[name].[hash:8].[ext]',
+                name: 'static/media/[name].[hash:8].[ext]',
               },
             },
             // ** STOP ** Are you adding a new loader?
@@ -662,9 +681,8 @@ module.exports = function(webpackEnv) {
         new MiniCssExtractPlugin({
           // Options similar to the same options in webpackOptions.output
           // both options are optional
-          filename: assetPathPrefix + 'static/css/[name].[contenthash:8].css',
-          chunkFilename:
-            assetPathPrefix + 'static/css/[name].[contenthash:8].chunk.css',
+          filename: `${cssPath}[name].${cssHash}.css`,
+          chunkFilename: `${cssPath}[name].${cssHash}.chunk.css`,
         }),
       // Generate an asset manifest file with the following content:
       // - "files" key: Mapping of all asset filenames to their corresponding
@@ -741,6 +759,9 @@ module.exports = function(webpackEnv) {
           // The formatter is invoked directly in WebpackDevServerUtils during development
           formatter: isEnvProduction ? typescriptFormatter : undefined,
         }),
+      new WebpackGitHash({
+        hashLength: 40,
+      }),
     ].filter(Boolean),
     // Some libraries import Node modules but don't use them in the browser.
     // Tell Webpack to provide empty mocks for them so importing them works.
