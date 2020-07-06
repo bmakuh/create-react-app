@@ -22,15 +22,17 @@ if (!NODE_ENV) {
   );
 }
 
+const envPath = `${paths.appPath}/config/env/.env`;
+const topLevelEnvPath = paths.dotenv;
+
 // https://github.com/bkeepers/dotenv#what-other-env-files-can-i-use
 const dotenvFiles = [
-  `${paths.dotenv}.${NODE_ENV}.local`,
-  `${paths.dotenv}.${NODE_ENV}`,
-  // Don't include `.env.local` for `test` environment
+  // Don't include top-level `.env` for `test` environment
   // since normally you expect tests to produce the same
   // results for everyone
-  NODE_ENV !== 'test' && `${paths.dotenv}.local`,
-  paths.dotenv,
+  NODE_ENV !== 'test' && topLevelEnvPath,
+  `${envPath}.${NODE_ENV}`,
+  `${envPath}.base`,
 ].filter(Boolean);
 
 // Load environment variables from .env* files. Suppress warnings using silent
