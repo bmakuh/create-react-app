@@ -15,7 +15,13 @@ const paths = require('./paths');
 // Make sure that including paths.js after env.js will read .env variables.
 delete require.cache[require.resolve('./paths')];
 
+const ENVIRONMENT = process.env.ENVIRONMENT;
 const NODE_ENV = process.env.NODE_ENV;
+if (!ENVIRONMENT) {
+  throw new Error(
+    'The ENVIRONMENT environment variable is required but was not specified.'
+  );
+}
 if (!NODE_ENV) {
   throw new Error(
     'The NODE_ENV environment variable is required but was not specified.'
@@ -30,8 +36,8 @@ const dotenvFiles = [
   // Don't include top-level `.env` for `test` environment
   // since normally you expect tests to produce the same
   // results for everyone
-  NODE_ENV !== 'test' && topLevelEnvPath,
-  `${envPath}.${NODE_ENV}`,
+  ENVIRONMENT !== 'test' && topLevelEnvPath,
+  `${envPath}.${ENVIRONMENT}`,
   `${envPath}.base`,
 ].filter(Boolean);
 
