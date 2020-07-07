@@ -32,6 +32,10 @@ const getClientEnvironment = require('./env');
 const ModuleNotFoundPlugin = require('react-dev-utils/ModuleNotFoundPlugin');
 const ForkTsCheckerWebpackPlugin = require('react-dev-utils/ForkTsCheckerWebpackPlugin');
 const typescriptFormatter = require('react-dev-utils/typescriptFormatter');
+const {
+  BugsnagBuildReporterPlugin,
+  BugsnagSourceMapUploaderPlugin,
+} = require('webpack-bugsnag-plugins');
 // @remove-on-eject-begin
 // const eslint = require('eslint');
 const getCacheIdentifier = require('react-dev-utils/getCacheIdentifier');
@@ -649,6 +653,21 @@ module.exports = function(webpackEnv) {
       isEnvProduction &&
         shouldInlineRuntimeChunk &&
         new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/runtime-.+[.]js/]),
+      isEnvProduction &&
+        new BugsnagBuildReporterPlugin(
+          {
+            apiKey: process.env.REACT_APP_BUGSNAG_API_KEY,
+            appVersion: process.env.REACT_APP_GITHASH,
+          },
+          {
+            /* opts */
+          }
+        ),
+      isEnvProduction &&
+        new BugsnagSourceMapUploaderPlugin({
+          apiKey: process.env.REACT_APP_BUGSNAG_API_KEY,
+          appVersion: process.env.REACT_APP_GITHASH,
+        }),
       // Makes some environment variables available in index.html.
       // The public URL is available as %PUBLIC_URL% in index.html, e.g.:
       // <link rel="icon" href="%PUBLIC_URL%/favicon.ico">
