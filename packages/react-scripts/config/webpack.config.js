@@ -667,6 +667,7 @@ module.exports = function(webpackEnv) {
         new BugsnagSourceMapUploaderPlugin({
           apiKey: process.env.REACT_APP_BUGSNAG_API_KEY,
           appVersion: process.env.REACT_APP_GITHASH,
+          publicPath: process.env.REACT_APP_BUGSNAG_PUBLIC_PATH,
         }),
       // Makes some environment variables available in index.html.
       // The public URL is available as %PUBLIC_URL% in index.html, e.g.:
